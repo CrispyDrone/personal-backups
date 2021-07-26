@@ -1,0 +1,7 @@
++ /Notes/**
++ /Personal/**
+- /Projects/**/{node_modules,.vs,bin,obj}/**
++ /Projects/**
++ /Zettelkasten/**
+- **
+

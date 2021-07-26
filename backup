@@ -1,0 +1,78 @@
+#!/usr/bin/env sh
+
+# TODO: extract hardcoded paths
+# TODO: test
+
+call_rclone()
+{
+	local command="${1}"
+
+	[ "${dry_run}" = true ] && command="${command} --dry-run"
+	[ "${verbose}" = true ] && command="${command} -v"
+	[ "${log_to_file}" = true ] && command="${command} --log-file /w/rclone.txt"
+	command="${command} --transfers 32"
+
+	printf "%s\n" "${command}"
+
+	eval "${command}"
+}
+
+backup_mutable()
+{
+	# TODO: use local variables
+	[ -z "${RCLONE_MUTABLE_FILTERFROM}" ] || [ ! -f "${RCLONE_MUTABLE_FILTERFROM}" ] && { printf "Please ensure the variable RCLONE_MUTABLE_FILTERFROM is set and the file exists\n" && exit 1; }
+
+	local command="rclone copy --filter-from \"${RCLONE_MUTABLE_FILTERFROM}\" /w/ ${b2_bucket}:backups/mutable/target/${1}/"
+
+	call_rclone "${command}"
+}
+
+backup_immutable()
+{
+	# TODO: use local variables
+
+	[ -z "${RCLONE_IMMUTABLE_FILTERFROM}" ] || [ ! -f "${RCLONE_IMMUTABLE_FILTERFROM}" ] && { printf "Please ensure the variable RCLONE_IMMUTABLE_FILTERFROM is set and the file exists\n" && exit 1; }
+
+	local command="rclone sync --filter-from \"${RCLONE_IMMUTABLE_FILTERFROM}\" --track-renames --delete-after --backup-dir ${b2_bucket}:backups/immutable/backup-dir/${1}/ /w/ ${b2_bucket}:backups/immutable/target/"
+
+	call_rclone "${command}"
+}
+
+main()
+{
+	local readonly now="$(date "+%Y%m%dT%H%M%S")"
+	local return_code=0
+
+	[ "${1:-true}" = true ] && { backup_mutable "${now}" || return_code=1; }
+	[ "${2:-true}" = true ] && { backup_immutable "${now}" || return_code=1; }
+
+	return ${return_code}
+}
+
+#readonly b2_bucket="homepc-2021-07-23"
+readonly b2_bucket="eb2"
+
+#restore=false
+mutable=false
+immutable=false
+dry_run=false
+verbose=false
+log_to_file=false
+all=true
+
+while (( $# > 0 ))
+do
+	case "$1" in
+		--mutable) 	mutable=true && all=false 		;;
+		--immutable) 	immutable=true && all=false		;;
+		--dry-run)	dry_run=true				;;
+		--verbose)	verbose=true				;;
+		--log)		log_to_file=true			;;
+		#--restore)						;;
+		*)		printf "unknown argument" && exit 2 	;;
+	esac
+	shift
+done
+
+${all} && main || main ${mutable} ${immutable}
+

@@ -1,6 +1,7 @@
 - /Library/Videos/tv/**
 - /Library/Videos/movies/**
 + /Library/**
++ /Personal/Media/**
 + /School/**
 + /TODO/**
 - /Work/**/{node_modules,.vs,bin,obj}/**

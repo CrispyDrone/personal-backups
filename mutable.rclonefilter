@@ -1,4 +1,6 @@
 + /Notes/**
+- /Personal/Administration/**
+- /Personal/Media/**
 + /Personal/**
 - /Projects/**/{node_modules,.vs,bin,obj}/**
 + /Projects/**

@@ -58,16 +58,19 @@ immutable=false
 dry_run=false
 verbose=false
 log_to_file=false
+shutdown_after=false
 all=true
+exit_code=0
 
 while (( $# > 0 ))
 do
 	case "$1" in
-		--mutable) 	mutable=true && all=false 		;;
-		--immutable) 	immutable=true && all=false		;;
-		--dry-run)	dry_run=true				;;
-		--verbose)	verbose=true				;;
-		--log)		log_to_file=true			;;
+		--mutable) 		mutable=true && all=false 	;;
+		--immutable) 		immutable=true && all=false	;;
+		--dry-run)		dry_run=true			;;
+		--verbose)		verbose=true			;;
+		--log)			log_to_file=true		;;
+		--shutdown-after)	shutdown_after=true		;;
 		#--restore)						;;
 		*)		printf "unknown argument" && exit 2 	;;
 	esac
@@ -75,4 +78,9 @@ do
 done
 
 ${all} && main || main ${mutable} ${immutable}
+exit_code=$?
+
+[ ! ${dry_run} = true ] && ${shutdown_after} && { printf "%s" "Shutting down computer in 60 seconds." && shutdown -s -t 60; }
+
+exit ${exit_code}
 
